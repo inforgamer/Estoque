@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:flutter/services.dart';
 
 void main() {
-  runApp(const MeuSistemaEstoque());
+  runApp(const SistemaEstoque());
 }
 
-class MeuSistemaEstoque extends StatelessWidget {
-  const MeuSistemaEstoque({super.key});
+class SistemaEstoque extends StatelessWidget {
+  const SistemaEstoque({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,143 +28,237 @@ class TelaEntrada extends StatefulWidget {
 }
 
 class _TelaEntradaState extends State<TelaEntrada> {
-  bool estaCarregando = false;
-  bool modoManual = false;
+  String tipoMovimentacao = 'Entrada';
+  final TextEditingController controladorNumeroNota = TextEditingController();
+  final TextEditingController controladorNomeCliente = TextEditingController();
+  final TextEditingController controladorTotal = TextEditingController();
 
-  final FocusNode focoLeitor = FocusNode();
-  final TextEditingController controladorLeitor = TextEditingController();
+  final TextEditingController controladorCodigo = TextEditingController();
+  final TextEditingController controladorQuantidade = TextEditingController();
+  
+  List<dynamic> listaProdutos = []; 
 
-  final TextEditingController controladorCodigoManual = TextEditingController();
-  final TextEditingController controladorQuantidadeManual = TextEditingController();
+  void adicionarItemNaTabela() {
+    String codigo = controladorCodigo.text.trim();
+    String qtd = controladorQuantidade.text.trim();
 
-  @override
-  void initState() {
-    super.initState();
-    focoLeitor.requestFocus();
+    if (codigo.isNotEmpty && qtd.isNotEmpty) {
+      setState(() {
+        listaProdutos.add({
+          'nome': codigo,
+          'qtd': qtd,
+        });
+      });
+
+      controladorCodigo.clear();
+      controladorQuantidade.clear();
+    }
   }
 
-  Future<void> processarLeitura(String chave) async {
-    String chaveLimpa = chave.trim();
+  Future<void> salvarNotaNoBanco() async {
+    int totalDeclarado = int.tryParse(controladorTotal.text) ?? 0;
 
-    if (chaveLimpa.length != 44) {
-      print("Erro: A chave precisa ter exatos 44 dígitos.");
-      controladorLeitor.clear();
-      focoLeitor.requestFocus();
+    int totalCalculado = 0;
+    for(var item in listaProdutos) {
+      totalCalculado += int.parse(item['qtd']);
+    }
+
+    if (totalDeclarado != totalCalculado) {
+      print("Erro de validação: Total declarado ($totalDeclarado) não corresponde ao total calculado ($totalCalculado).");
       return;
     }
-
-    setState(() {
-      estaCarregando = true; 
-    });
-
-    var url = Uri.parse('http://127.0.0.1:8000/receber-nota');
-    var resposta = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'chave_acesso': chaveLimpa}),
-    );
-
-    if (resposta.statusCode == 200) {
-      print("Nota fiscal processada com sucesso!");
-    } else {
-      print("Erro ao processar a nota fiscal: ${resposta.statusCode}");
-    }
-
-    setState(() {
-      estaCarregando = false; 
-      controladorLeitor.clear();
-    });
-
-    focoLeitor.requestFocus(); 
+    print("SUCESSO: As quantidades batem! Enviando para o servidor...");
+    print("Tipo: $tipoMovimentacao | Nota: ${controladorNumeroNota.text}");
+    print("Itens: $listaProdutos");
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Entrada de Nota Fiscal'),
+        title: const Text('Lançamento de Nota (Manual)'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(50.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-            
-              ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    modoManual = !modoManual;
-                    if (!modoManual) focoLeitor.requestFocus();
-                  });
-                },
-                icon: Icon(modoManual ? Icons.qr_code_scanner : Icons.keyboard),
-                label: Text(modoManual ? 'Voltar para Leitor USB' : 'Digitar Manualmente'),
-              ),
-              
-              const SizedBox(height: 40),
-
-              
-              if (estaCarregando)
-                const CircularProgressIndicator() 
-                
-              else if (modoManual)
-                
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
-                        controller: controladorCodigoManual,
-                        decoration: const InputDecoration(
-                          labelText: 'Código do Produto Interno',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: controladorQuantidadeManual,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Quantidade',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    SizedBox(
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          print("Salvando Manual - Cod: ${controladorCodigoManual.text} | Qtd: ${controladorQuantidadeManual.text}");
-                        },
-                        child: const Text('Adicionar à Nota'),
-                      ),
-                    ),
-                  ],
-                )
-                
-              else
-              
-                TextField(
-                  controller: controladorLeitor,
-                  focusNode: focoLeitor,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Bipe a DANFE aqui (Aguardando 44 dígitos...)',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.document_scanner),
-                  ),
-                  onSubmitted: (valorLido) {
-                    processarLeitura(valorLido);
+      body: Padding(
+        padding: const EdgeInsets.all(40.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+ 
+            const Text("Dados da Nota", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                DropdownButton<String>(
+                  value: tipoMovimentacao,
+                  items: <String>['Entrada', 'Saída'].map((String valor) {
+                    return DropdownMenuItem<String>(
+                      value: valor,
+                      child: Text(valor, style: const TextStyle(fontSize: 16)),
+                    );
+                  }).toList(),
+                  onChanged: (String? novoValor) {
+                    setState(() {
+                      tipoMovimentacao = novoValor!;
+                    });
                   },
                 ),
-            ],
-          ),
+                const SizedBox(width: 20),
+                Expanded(
+                  flex: 1,
+                  child: TextField(
+                    controller: controladorNumeroNota,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    decoration: const InputDecoration(labelText: 'Número da Nota', border: OutlineInputBorder()),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: controladorNomeCliente,
+                     keyboardType: TextInputType.name,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.singleLineFormatter,
+                    ],
+                    decoration: const InputDecoration(labelText: 'Cliente / Fornecedor', border: OutlineInputBorder()),
+                  ),
+                ),
+                 const SizedBox(width: 10),
+                  Expanded(
+                  flex: 1,
+                  child: TextField(
+                    controller: controladorTotal,
+                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    decoration: const InputDecoration(labelText: 'Total de Peças', border: OutlineInputBorder()),
+                  ),
+                ),
+              ],
+            ),
+            
+            const Divider(height: 50, thickness: 2),
+
+            const Text("Adicionar Produtos", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  flex: 3, 
+                  child: TextField(
+                    controller: controladorCodigo, 
+                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
+                    ],
+                    decoration: const InputDecoration(labelText: 'Código', border: OutlineInputBorder())
+                  )
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 1, 
+                  child: TextField(
+                    controller: controladorQuantidade,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],  
+                    decoration: const InputDecoration(labelText: 'Qtd', border: OutlineInputBorder())
+                  )
+                ),
+                const SizedBox(width: 10),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 55,
+                  child: ElevatedButton.icon(
+                    onPressed: adicionarItemNaTabela,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Inserir'),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+        
+            Expanded(
+              child: listaProdutos.isEmpty
+                  ? const Center(child: Text("Nenhum item adicionado ainda.", style: TextStyle(color: Colors.grey)))
+                  : SingleChildScrollView( 
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: DataTable(
+                          headingRowColor: MaterialStateProperty.resolveWith((states) => Colors.grey[200]),
+                          columns: const [
+                            DataColumn(label: Text('Produto', style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text('Quantidade', style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text('Ações', style: TextStyle(fontWeight: FontWeight.bold))),
+                          ],
+                          rows: listaProdutos.asMap().entries.map((entrada) {
+                            int indice = entrada.key;
+                            var item = entrada.value; 
+
+                            return DataRow(cells: [
+                              DataCell(Text(item['nome'].toString())),
+                              DataCell(Text(item['qtd'].toString())),
+                              
+                              DataCell(
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, color: Colors.blue),
+                                      onPressed: () {
+                                        controladorCodigo.text = item['nome'].toString();
+                                        controladorQuantidade.text = item['qtd'].toString();
+                                        
+                                        setState(() {
+                                          listaProdutos.removeAt(indice);
+                                        });
+                                      },
+                                    ),
+                                    
+                                    IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () {
+                                        setState(() {
+                                          listaProdutos.removeAt(indice); 
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]);
+                          }).toList(),
+                        ),
+                      ),
+                    ),   
+            ),           
+
+            if (listaProdutos.isNotEmpty)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: ElevatedButton.icon(
+                    onPressed: salvarNotaNoBanco,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                    ),
+                    icon: const Icon(Icons.save),
+                    label: const Text('Salvar Nota no Banco', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
