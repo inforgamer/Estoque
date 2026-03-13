@@ -44,3 +44,22 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# --- Regras para o Motor Python ---
+venv/
+env/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Banco de Dados Local ---
+# Ignoramos para você não subir dados de teste pro Git
+notas.db
+notas.db-journal
+
+# --- Arquivo de Configuração (Segurança) ---
+.env

@@ -25,35 +25,59 @@ class Nota_Recebida(BaseModel):
 
 @app.post("/api/notas")
 def receber_nota(Dados: Nota_Recebida):
-    db = SessaoSQLite()
+    db_local = SessaoSQLite()
     try:
+        nota_existente = db_local.query(Nota).filter_by(numero_nf=Dados.numero_nf).first()
+        if nota_existente:
+            raise HTTPException(status_code=400, detail=f"A Nota Fiscal {Dados.numero_nf} já foi lançada!")
+
         if Dados.tipo == "saida":
             for item in Dados.itens:
-                p = db.query(Produto).filter_by(codigo=item.codigo).first()
+                p = db_local.query(Produto).filter_by(codigo=item.codigo).first()
                 if not p or p.quantidade < item.quantidade:
                     raise HTTPException(status_code=400, detail=f"Sem estoque para o código {item.codigo}")
 
         nova_nota = Nota(numero_nf=Dados.numero_nf, tipo=Dados.tipo, cliente=Dados.cliente, quantidade=Dados.quantidade, sincronizado=mysql_connected)
-        db.add(nova_nota)
-        db.flush()
+        db_local.add(nova_nota)
+        db_local.flush()
 
         for item in Dados.itens:
-            prod = db.query(Produto).filter_by(codigo=item.codigo).first()
+            prod = db_local.query(Produto).filter_by(codigo=item.codigo).first()
             if not prod:
                 prod = Produto(codigo=item.codigo, quantidade=0)
-                db.add(prod)
-                db.flush()
+                db_local.add(prod)
+                db_local.flush()
             if Dados.tipo == "entrada": prod.quantidade += item.quantidade
             else: prod.quantidade -= item.quantidade
-            db.add(Movimentacao(nota_id=nova_nota.id, produto_codigo=item.codigo, quantidade=item.quantidade))
+            db_local.add(Movimentacao(nota_id=nova_nota.id, produto_codigo=item.codigo, quantidade=item.quantidade))
         
-        db.commit()
+        db_local.commit()
+
+        if mysql_connected and SessaoMySQL:
+            try:
+                db_remote = SessaoMySQL()
+                rem_nota = Nota(numero_nf=Dados.numero_nf, tipo=Dados.tipo, cliente=Dados.cliente, quantidade=Dados.quantidade)
+                db_remote.add(rem_nota)
+                db_remote.flush()
+                for item in Dados.itens:
+                    rp = db_remote.query(Produto).filter_by(codigo=item.codigo).first()
+                    if not rp: 
+                        rp = Produto(codigo=item.codigo, quantidade=0)
+                        db_remote.add(rp)
+                        db_remote.flush()
+                    if Dados.tipo == "entrada": rp.quantidade += item.quantidade
+                    else: rp.quantidade -= item.quantidade
+                    db_remote.add(Movimentacao(nota_id=rem_nota.id, produto_codigo=item.codigo, quantidade=item.quantidade))
+                db_remote.commit()
+                db_remote.close()
+            except: pass 
+
         return {"status": "sucesso"}
     except HTTPException as e: raise e
     except Exception as e:
-        db.rollback()
+        db_local.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    finally: db.close()
+    finally: db_local.close()
 
 @app.get("/api/estoque")
 def listar_estoque():
@@ -66,8 +90,17 @@ def listar_estoque():
 def editar_estoque(item: Item):
     db = SessaoSQLite()
     p = db.query(Produto).filter_by(codigo=item.codigo).first()
-    if p: p.quantidade = item.quantidade
-    db.commit()
+    if p:
+        p.quantidade = item.quantidade
+        db.commit()
+        if mysql_connected and SessaoMySQL:
+            try:
+                db_rem = SessaoMySQL()
+                rp = db_rem.query(Produto).filter_by(codigo=item.codigo).first()
+                if rp: rp.quantidade = item.quantidade
+                db_rem.commit()
+                db_rem.close()
+            except: pass
     db.close()
     return {"status": "ok"}
 
