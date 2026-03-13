@@ -7,25 +7,41 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - run: flutter pub get
-      - run: flutter build windows
+          
+      - name: Habilitar Windows Desktop
+        run: flutter config --enable-windows-desktop
 
-      - uses: actions/setup-python@v4
+      - name: Instalar Dependências Flutter
+        run: flutter pub get
+
+      - name: Build Flutter Windows
+        run: flutter build windows --release
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: |
-          pip install pyinstaller fastapi uvicorn sqlalchemy pymysql cryptography pydantic-settings
-          pyinstaller --noconsole --onefile lib/servidor.py
 
-      - name: Disponibilizar arquivos
-        uses: actions/upload-artifact@v3
+      - name: Instalar Dependências Python e PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller fastapi uvicorn sqlalchemy pymysql cryptography pydantic-settings
+          
+      - name: Build Servidor Python
+        run: pyinstaller --noconsole --onefile lib/servidor.py
+
+      - name: Disponibilizar Binários
+        uses: actions/upload-artifact@v4
         with:
-          name: SistemaEstoque-Windows
+          name: Sistema-Estoque-Pronto
           path: |
             build/windows/x64/runner/Release/
             dist/servidor.exe
+            .env
