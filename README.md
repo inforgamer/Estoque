@@ -1,17 +1,58 @@
-# sistema_estoque
+# 📦 ESTOQUE PRO - Sincronização Híbrida & Automação
 
-A new Flutter project.
+![Build Status](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/actions/workflows/build.yml/badge.svg)
+![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-00000F?style=for-the-badge&logo=mysql&logoColor=white)
 
-## Getting Started
+Sistema de gerenciamento de estoque profissional desenvolvido com foco em **redundância de dados** e **experiência do usuário**. O projeto utiliza uma arquitetura híbrida para garantir que o estoque nunca pare, mesmo sem internet.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Diferenciais do Projeto
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+* **🛡️ Redundância "Cofre":** Sincronização automática entre banco local (**SQLite**) no notebook e banco central (**MySQL**) no servidor Linux (Zorin OS).
+* **⚙️ Automação Total (CI/CD):** Builds automáticos para Windows via GitHub Actions. O código é compilado na nuvem e entregue pronto para uso.
+* **🔍 Multifiltros Inteligentes:** Pesquisa avançada por Data (Calendário), Número de Nota, Cliente ou Código de Produto.
+* **🚫 Blindagem contra Erros:** * Bloqueio de estoque negativo.
+    * Prevenção de duplicidade em Notas Fiscais.
+    * Validação de soma total de itens.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 🛠️ Stack Tecnológica
+
+* **Front-end:** [Flutter](https://flutter.dev/) (Interface Desktop moderna e fluida).
+* **Back-end:** [FastAPI](https://fastapi.tiangolo.com/) (Motor Python de alta performance).
+* **Bancos de Dados:** SQLAlchemy (ORM) gerenciando SQLite e MySQL simultaneamente.
+* **DevOps:** GitHub Actions para compilação cruzada (Cross-compilation).
+
+---
+
+> [!IMPORTANT]
+> **Arquitetura de Sincronização:**
+> O sistema opera em modo "Offline-First". Toda nota é salva localmente e, se houver conexão, espelhada instantaneamente para o servidor central.
+
+---
+
+## 📥 Como rodar o projeto
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone [https://github.com/SEU_USUARIO/EstoquePro.git](https://github.com/inforgamer/Estoque)
+    ```
+2.  **Configure o arquivo `.env`:**
+    Crie um arquivo `.env` na raiz com o IP do seu servidor MySQL:
+    ```env
+    MYSQL_IP
+    DB_USER=seu_usuario
+    DB_PASS=sua_senha
+    ```
+3.  **Acesse os binários:**
+    Vá na aba **Actions** deste repositório e baixe o artefato mais recente do Windows.
+
+---
+
+## ✒️ Autor
+
+* **Infor** - ** - [Meu GitHub](https://github.com/inforgamer)
