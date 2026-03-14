@@ -1,23 +1,23 @@
 [Setup]
-AppName=Estoque 
+AppName=Estoque
 AppVersion=1.0
 DefaultDirName={autopf}\Estoque
 DefaultGroupName=Estoque
-SetupIconFile=icon.ico
+UninstallDisplayIcon={app}\sistema_estoque.exe
 Compression=lzma
 SolidCompression=yes
+OutputDir=userdocs:Inno Setup Output
 
 [Files]
-Source: "build\windows\x64\runner\Release\sistema_estoque.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\windows\x64\runner\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\windows\x64\runner\Release\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs
-; Aqui ele busca o servidor e o .env
-Source: "dist\servidor.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".env"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Estoque.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Caminho\Para\Seus\Arquivos\sistema_estoque.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Caminho\Para\Seus\Arquivos\*.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Caminho\Para\Seus\Arquivos\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs
+Source: "C:\Caminho\Para\Seus\Arquivos\servidor.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Caminho\Para\Seus\Arquivos\.env"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Caminho\Para\Seus\Arquivos\launcher.vbs"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{commondesktop}\Estoque "; Filename: "{app}\Estoque.bat"; IconFilename: "{app}\favicon.ico"
+Name: "{commondesktop}\Estoque"; Filename: "wscript.exe"; Parameters: """{app}\launcher.vbs"""; IconFilename: "{app}\sistema_estoque.exe"
 
 [Run]
-Filename: "{app}\Estoque.bat"; Description: "Lançar App"; Flags: postinstall nowait
+Filename: "wscript.exe"; Parameters: """{app}\launcher.vbs"""; Description: "Lançar Estoque"; Flags: postinstall nowait
