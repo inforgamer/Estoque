@@ -1,4 +1,4 @@
-# 📦 ESTOQUE PRO - Sincronização Híbrida & Automação
+# 📦 ESTOQUE - Sincronização Híbrida & Automação
 
 ![Build Status](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/actions/workflows/build.yml/badge.svg)
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
