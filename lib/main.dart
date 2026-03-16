@@ -35,7 +35,7 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
         TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
         ElevatedButton(onPressed: () async {
           if (_s.text == "Hugo4000x") {
-            await http.delete(Uri.parse('htpp://127.0.0.1:8000/api/reset'));
+            await http.delete(Uri.parse('http://127.0.0.1:8000/api/reset'));
             Navigator.pop(context); setState(() => _id = -1);
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("⚠️ Banco de dados reiniciado!"), backgroundColor: Colors.orange));
           }
@@ -95,7 +95,7 @@ class _TelaEntradaState extends State<TelaEntrada> {
     setState(() => _enviando = true);
 
     try {
-      var res = await http.post(Uri.parse('htpp://127.0.0.1:8000/api/notas'), headers: {"Content-Type": "application/json"},
+      var res = await http.post(Uri.parse('http://127.0.0.1:8000/api/notas'), headers: {"Content-Type": "application/json"},
         body: jsonEncode({"tipo": tipo.toLowerCase(), "numero_nf": int.parse(cN.text), "cliente": cC.text, "quantidade": int.parse(cT.text), "itens": itens.map((i) => {"codigo": int.parse(i['nome']), "quantidade": int.parse(i['qtd'])}).toList()}));
       
       if (res.statusCode == 200) {
@@ -162,7 +162,7 @@ class _TelaEstoqueState extends State<TelaEstoque> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(onPressed: () async {
-              await http.post(Uri.parse('htpp://127.0.0.1:8000/api/estoque/editar'), headers: {"Content-Type": "application/json"}, body: jsonEncode({"codigo": codigo, "quantidade": int.parse(_cont.text)}));
+              await http.post(Uri.parse('http://127.0.0.1:8000/api/estoque/editar'), headers: {"Content-Type": "application/json"}, body: jsonEncode({"codigo": codigo, "quantidade": int.parse(_cont.text)}));
               Navigator.pop(context); setState(() {});
             }, child: const Text("Salvar"))
         ],
@@ -177,7 +177,7 @@ class _TelaEstoqueState extends State<TelaEstoque> {
         IconButton(icon: Icon(cres ? Icons.arrow_downward : Icons.arrow_upward), onPressed: () => setState(() => cres = !cres))
       ])),
       Expanded(child: FutureBuilder(
-        future: http.get(Uri.parse('htpp://127.0.0.1:8000/api/estoque')),
+        future: http.get(Uri.parse('http://127.0.0.1:8000/api/estoque')),
         builder: (context, snap) {
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           List d = jsonDecode(snap.data!.body);
@@ -214,7 +214,7 @@ class _TelaHistoricoState extends State<TelaHistorico> {
 
   Future<void> buscarDados() async {
     try {
-      final res = await http.get(Uri.parse('htpp://127.0.0.1:8000/api/historico'));
+      final res = await http.get(Uri.parse('http://127.0.0.1:8000/api/historico'));
       if (res.statusCode == 200) setState(() { todasNotas = jsonDecode(res.body); carregando = false; });
     } catch (e) { setState(() => carregando = false); }
   }
@@ -281,7 +281,7 @@ class _TelaAjusteState extends State<TelaAjuste> {
   Future<void> ajustar() async {
     if (_c.text.isEmpty || _q.text.isEmpty) return;
     try {
-      await http.post(Uri.parse('htpp://127.0.0.1:8000/api/ajuste'), headers: {"Content-Type": "application/json"}, body: jsonEncode({"codigo": int.parse(_c.text), "quantidade": int.parse(_q.text)}));
+      await http.post(Uri.parse('http://127.0.0.1:8000/api/ajuste'), headers: {"Content-Type": "application/json"}, body: jsonEncode({"codigo": int.parse(_c.text), "quantidade": int.parse(_q.text)}));
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Ajuste realizado!"), backgroundColor: Colors.blue));
       _c.clear(); _q.clear(); FocusScope.of(context).requestFocus(_fc);
     } catch (e) {
