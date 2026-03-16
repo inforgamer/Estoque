@@ -39,7 +39,7 @@ Sistema de gerenciamento de estoque profissional desenvolvido com foco em **redu
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/SEU_USUARIO/EstoquePro.git](https://github.com/inforgamer/Estoque)
+    git clone [https://github.com/SEU_USUARIO/Estoque.git](https://github.com/inforgamer/Estoque)
     ```
 2.  **Configure o arquivo `.env`:**
     Crie um arquivo `.env` na raiz com o IP do seu servidor MySQL:
