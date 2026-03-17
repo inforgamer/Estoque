@@ -1,13 +1,10 @@
-import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+
 from lib.db import Nota, Produto, Movimentacao, motor_sqlite, mysql_connected, motor_mysql
 
-load_dotenv()
 app = FastAPI(title="Estoque Pro API")
 SessaoSQLite = sessionmaker(bind=motor_sqlite)
 SessaoMySQL = sessionmaker(bind=motor_mysql) if mysql_connected else None
@@ -121,12 +118,28 @@ def ver_historico():
 
 @app.post("/api/ajuste")
 def ajustar(item: Item):
-    db = SessaoSQLite()
-    p = db.query(Produto).filter_by(codigo=item.codigo).first()
-    if not p: db.add(Produto(codigo=item.codigo, quantidade=item.quantidade))
-    else: p.quantidade += item.quantidade
-    db.commit()
-    db.close()
+    db_local = SessaoSQLite()
+    p = db_local.query(Produto).filter_by(codigo=item.codigo).first()
+    if not p: 
+        db_local.add(Produto(codigo=item.codigo, quantidade=item.quantidade))
+    else: 
+        p.quantidade += item.quantidade
+    db_local.commit()
+    db_local.close()
+
+    if mysql_connected and SessaoMySQL:
+        try:
+            db_rem = SessaoMySQL()
+            rp = db_rem.query(Produto).filter_by(codigo=item.codigo).first()
+            if not rp: 
+                db_rem.add(Produto(codigo=item.codigo, quantidade=item.quantidade))
+            else: 
+                rp.quantidade += item.quantidade
+            db_rem.commit()
+            db_rem.close()
+        except: 
+            pass 
+
     return {"status": "ok"}
 
 @app.delete("/api/reset")
