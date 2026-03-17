@@ -31,25 +31,26 @@ jobs:
         run: flutter build windows --release
 
       - name: Build Python Server
-        # AJUSTADO: Agora ele busca dentro da pasta lib
         run: pyinstaller --onedir lib/servidor.py
 
       - name: 📦 ORGANIZAÇÃO FINAL
+        shell: cmd  # <--- ISSO AQUI VAI SALVAR A GENTE!
         run: |
           mkdir Pacote_Final
-          # 1. Copia o Flutter (Executável e arquivos)
+          
+          :: 1. Copia o Flutter
           xcopy /E /I build\windows\x64\runner\Release\* Pacote_Final\
           
-          # 2. Copia o servidor.exe (O PyInstaller gera na pasta dist)
+          :: 2. Copia o servidor.exe
           copy dist\servidor\servidor.exe Pacote_Final\
           
-          # 3. Copia a PASTA LIB inteira (Vital para o banco de dados)
+          :: 3. Copia a PASTA LIB inteira
           xcopy /E /I lib Pacote_Final\lib\
           
-          # 4. Copia os arquivos extras da raiz
-          if exist launcher.vbs ( copy launcher.vbs Pacote_Final\ )
-          if exist .env ( copy .env Pacote_Final\ )
-          if exist notas.db ( copy notas.db Pacote_Final\ )
+          :: 4. Copia os arquivos extras se eles existirem
+          if exist launcher.vbs copy launcher.vbs Pacote_Final\
+          if exist .env copy .env Pacote_Final\
+          if exist notas.db copy notas.db Pacote_Final\
 
       - name: 🚀 Upload do Sistema
         uses: actions/upload-artifact@v4
