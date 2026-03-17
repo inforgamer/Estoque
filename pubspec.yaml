@@ -50,5 +50,5 @@ jobs:
       - name: Upload da Release
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Estoque-Pronto-Para-Uso
+          name: Sistema-Estoque
           path: Final_Release/
