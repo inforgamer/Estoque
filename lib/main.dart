@@ -47,7 +47,7 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_id == -1 ? "Estoque" : ["Notas", "Estoque V3", "Histórico", "Ajuste"][_id])),
+      appBar: AppBar(title: Text(_id == -1 ? "Estoque" : ["Notas", "Estoque", "Histórico", "Ajuste"][_id])),
       drawer: Drawer(
         child: Column(children: [
           const DrawerHeader(decoration: BoxDecoration(color: Colors.blue), child: Center(child: Text('ESTOQUE', style: TextStyle(color: Colors.white, fontSize: 24)))),
