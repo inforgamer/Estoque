@@ -11,11 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Configura o Flutter (Sem versão fixa para não dar erro!)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable' # Ele vai pegar a mais nova que funciona
+          channel: 'stable'
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -32,21 +31,25 @@ jobs:
         run: flutter build windows --release
 
       - name: Build Python Server
-        run: pyinstaller --onedir servidor.py
+        # AJUSTADO: Agora ele busca dentro da pasta lib
+        run: pyinstaller --onedir lib/servidor.py
 
       - name: 📦 ORGANIZAÇÃO FINAL
         run: |
           mkdir Pacote_Final
-          # Copia o Flutter
+          # 1. Copia o Flutter (Executável e arquivos)
           xcopy /E /I build\windows\x64\runner\Release\* Pacote_Final\
-          # Copia o Servidor
+          
+          # 2. Copia o servidor.exe (O PyInstaller gera na pasta dist)
           copy dist\servidor\servidor.exe Pacote_Final\
-          # Copia a Pasta LIB (Crucial!)
+          
+          # 3. Copia a PASTA LIB inteira (Vital para o banco de dados)
           xcopy /E /I lib Pacote_Final\lib\
-          # Copia o Launcher
-          copy launcher.vbs Pacote_Final\
-          # Cria um .env de segurança
-          if not exist Pacote_Final\.env ( echo DB_HOST=localhost > Pacote_Final\.env )
+          
+          # 4. Copia os arquivos extras da raiz
+          if exist launcher.vbs ( copy launcher.vbs Pacote_Final\ )
+          if exist .env ( copy .env Pacote_Final\ )
+          if exist notas.db ( copy notas.db Pacote_Final\ )
 
       - name: 🚀 Upload do Sistema
         uses: actions/upload-artifact@v4
