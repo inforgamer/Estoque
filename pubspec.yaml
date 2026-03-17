@@ -2,7 +2,7 @@ name: Gerar Release Completa
 
 on:
   push:
-    branches: [ "main" ] # Roda sempre que você mandar código para a main
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -11,35 +11,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Configura o Flutter (Baseado no seu pubspec)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.11.1' # A versão que está no seu arquivo
+          flutter-version: '3.11.1' 
           channel: 'stable'
 
-      # 2. Configura o Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # 3. Instala as dependências do Flutter e Python
       - name: Instalar Dependências
         run: |
           flutter pub get
           python -m pip install --upgrade pip
           pip install pyinstaller cryptography pymysql sqlalchemy fastapi uvicorn pymysql
 
-      # 4. Compila o Visual (Flutter)
       - name: Build Flutter Windows
         run: flutter build windows
 
-      # 5. Compila o Motor (Python)
       - name: Build Python Server
         run: pyinstaller --onedir servidor.py
 
-      # 6. ORGANIZAÇÃO (A parte que estava te dando raiva!)
       - name: Organizar Pasta de Release
         run: |
           mkdir Final_Release
@@ -53,7 +47,6 @@ jobs:
           copy launcher.vbs Final_Release\
           copy .env Final_Release\
 
-      # 7. Entrega o arquivo pronto para você baixar
       - name: Upload da Release
         uses: actions/upload-artifact@v4
         with:
