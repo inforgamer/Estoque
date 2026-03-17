@@ -34,24 +34,24 @@ jobs:
       - name: Build Python Server
         run: pyinstaller --onedir servidor.py
 
-      - name: 📦 ORGANIZAÇÃO FINAL (Tudo na Raiz)
+      - name: 📦 ORGANIZAÇÃO FINAL (Tudo na mesma pasta)
         run: |
           mkdir Pacote_Final
-          # 1. Pega os arquivos do Flutter e joga na raiz do pacote
-          xcopy /E /I build\windows\runner\Release\* Pacote_Final\
+          # 1. Copia o Flutter (executável e pastas de dados)
+          xcopy /E /I build\windows\x64\runner\Release\* Pacote_Final\
           
-          # 2. Pega o servidor.exe e joga na raiz
+          # 2. Copia o servidor.exe
           copy dist\servidor\servidor.exe Pacote_Final\
           
-          # 3. CRUCIAL: Tenta copiar a pasta LIB (Se falhar, o build para aqui)
-          if exist lib ( xcopy /E /I lib Pacote_Final\lib\ ) else ( echo "ERRO: Pasta lib nao encontrada!" && exit 1 )
+          # 3. Copia a PASTA LIB (O que estava faltando antes!)
+          xcopy /E /I lib Pacote_Final\lib\
           
-          # 4. Copia os arquivos de configuração (Se existirem)
-          if exist launcher.vbs ( copy launcher.vbs Pacote_Final\ )
-          if exist .env ( copy .env Pacote_Final\ )
+          # 4. Copia o Launcher e tenta criar um .env básico se não existir
+          copy launcher.vbs Pacote_Final\
+          if not exist Pacote_Final\.env ( echo DB_HOST=localhost > Pacote_Final\.env )
 
-      - name: 🚀 Upload do Sistema Pronto
+      - name: 🚀 Upload do Sistema
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Estoque-v1-COMPLETO
+          name: Sistema-Estoque-Pronto
           path: Pacote_Final/
