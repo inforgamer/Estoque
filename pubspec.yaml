@@ -1,54 +1,21 @@
-name: Gerar Release Completa
+name: sistema_estoque
+description: "Sistema de gerenciamento de estoque."
+publish_to: 'none'
+version: 1.0.0+1
 
-on:
-  push:
-    branches: [ "main" ]
+environment:
+  sdk: '>=3.11.1 <4.0.0'
 
-jobs:
-  build:
-    runs-on: windows-latest
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.6.0
 
-    steps:
-      - uses: actions/checkout@v4
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.11.1' 
-          channel: 'stable'
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Instalar Dependências
-        run: |
-          flutter pub get
-          python -m pip install --upgrade pip
-          pip install pyinstaller cryptography pymysql sqlalchemy fastapi uvicorn pymysql
-
-      - name: Build Flutter Windows
-        run: flutter build windows
-
-      - name: Build Python Server
-        run: pyinstaller --onedir servidor.py
-
-      - name: Organizar Pasta de Release
-        run: |
-          mkdir Final_Release
-          # Move o Flutter
-          xcopy /E /I build\windows\runner\Release\* Final_Release\sistema\
-          # Move o Python
-          copy dist\servidor\servidor.exe Final_Release\servidor\
-          # COPIA A PASTA LIB (Para não dar erro de ModuleNotFoundError)
-          xcopy /E /I lib\* Final_Release\servidor\lib\
-          # Copia os arquivos de apoio
-          copy launcher.vbs Final_Release\
-          copy .env Final_Release\
-
-      - name: Upload da Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: Sistema-Estoque
-          path: Final_Release/
+flutter:
+  uses-material-design: true
