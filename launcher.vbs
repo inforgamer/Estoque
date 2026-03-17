@@ -1,5 +1,7 @@
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.CurrentDirectory = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
-WshShell.Run "servidor.exe", 0, False
+strPath = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
+WshShell.CurrentDirectory = strPath
+
+WshShell.Run Chr(34) & strPath & "\servidor.exe" & Chr(34), 0, False
 WScript.Sleep 3000
-WshShell.Run "sistema_estoque.exe", 1, True
+WshShell.Run Chr(34) & strPath & "\sistema_estoque.exe" & Chr(34), 1, True
