@@ -1,47 +1,57 @@
-name: Gerar Executáveis Windows
+name: Gerar Release Completa
+
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.11.1' 
           channel: 'stable'
-          
-      - name: Habilitar Windows Desktop
-        run: flutter config --enable-windows-desktop
 
-      - name: Instalar Dependências Flutter
-        run: flutter pub get
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar Dependências
+        run: |
+          flutter pub get
+          python -m pip install --upgrade pip
+          pip install pyinstaller cryptography pymysql sqlalchemy fastapi uvicorn
 
       - name: Build Flutter Windows
         run: flutter build windows --release
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Build Python Server
+        run: pyinstaller --onedir servidor.py
 
-      - name: Instalar Dependências Python e PyInstaller
+      - name: 📦 ORGANIZAÇÃO FINAL (Tudo na Raiz)
         run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller fastapi uvicorn sqlalchemy pymysql cryptography pydantic-settings
+          mkdir Pacote_Final
+          # 1. Pega os arquivos do Flutter e joga na raiz do pacote
+          xcopy /E /I build\windows\runner\Release\* Pacote_Final\
           
-      - name: Build Servidor Python
-        run: pyinstaller --noconsole --onefile lib/servidor.py
+          # 2. Pega o servidor.exe e joga na raiz
+          copy dist\servidor\servidor.exe Pacote_Final\
+          
+          # 3. CRUCIAL: Tenta copiar a pasta LIB (Se falhar, o build para aqui)
+          if exist lib ( xcopy /E /I lib Pacote_Final\lib\ ) else ( echo "ERRO: Pasta lib nao encontrada!" && exit 1 )
+          
+          # 4. Copia os arquivos de configuração (Se existirem)
+          if exist launcher.vbs ( copy launcher.vbs Pacote_Final\ )
+          if exist .env ( copy .env Pacote_Final\ )
 
-      - name: Disponibilizar Binários
+      - name: 🚀 Upload do Sistema Pronto
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Estoque-Pronto
-          path: |
-            build/windows/x64/runner/Release/
-            dist/servidor.exe
-            .env
+          name: Sistema-Estoque-v1-COMPLETO
+          path: Pacote_Final/
