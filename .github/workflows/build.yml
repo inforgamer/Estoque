@@ -31,20 +31,23 @@ jobs:
         run: flutter build windows --release
 
       - name: Build Python Server
-        # MUDANÇA AQUI: --onefile para gerar um executável independente
-        run: pyinstaller --onefile lib/servidor.py
+        shell: cmd
+        # O TRUQUE: Movemos o servidor para a raiz antes de compilar e embutimos a lib
+        run: |
+          copy lib\servidor.py .
+          pyinstaller --onefile --add-data "lib;lib" servidor.py
 
       - name: 📦 ORGANIZAÇÃO FINAL
         shell: cmd
         run: |
           mkdir Pacote_Final
-          :: Copia o Flutter
+          :: 1. Copia o Flutter
           xcopy /E /I build\windows\x64\runner\Release\* Pacote_Final\
-          :: Copia o Servidor (Agora ele está direto na pasta dist\)
+          
+          :: 2. Copia o Servidor (O novo servidor.exe ja tem a lib dentro!)
           copy dist\servidor.exe Pacote_Final\
-          :: Copia a Pasta LIB
-          xcopy /E /I lib Pacote_Final\lib\
-          :: Copia os extras
+          
+          :: 3. Copia os arquivos de configuração
           if exist launcher.vbs copy launcher.vbs Pacote_Final\
           if exist .env copy .env Pacote_Final\
           if exist notas.db copy notas.db Pacote_Final\
@@ -52,5 +55,5 @@ jobs:
       - name: 🚀 Upload do Sistema
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Estoque-Pronto-v2
+          name: Sistema-Estoque-v2-FINAL
           path: Pacote_Final/
