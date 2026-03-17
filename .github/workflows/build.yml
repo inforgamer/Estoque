@@ -25,16 +25,16 @@ jobs:
         run: |
           flutter pub get
           python -m pip install --upgrade pip
-          pip install pyinstaller cryptography pymysql sqlalchemy fastapi uvicorn
+          pip install pyinstaller cryptography pymysql sqlalchemy fastapi uvicorn python-dotenv
 
       - name: Build Flutter Windows
         run: flutter build windows --release
 
       - name: Build Python Server
         shell: cmd
-        # O TRUQUE: Movemos o servidor para a raiz antes de compilar e embutimos a lib
         run: |
           copy lib\servidor.py .
+          :: Compila com a lib embutida e todas as dependências
           pyinstaller --onefile --add-data "lib;lib" servidor.py
 
       - name: 📦 ORGANIZAÇÃO FINAL
@@ -44,10 +44,10 @@ jobs:
           :: 1. Copia o Flutter
           xcopy /E /I build\windows\x64\runner\Release\* Pacote_Final\
           
-          :: 2. Copia o Servidor (O novo servidor.exe ja tem a lib dentro!)
+          :: 2. Copia o Servidor (Independente e com tudo dentro)
           copy dist\servidor.exe Pacote_Final\
           
-          :: 3. Copia os arquivos de configuração
+          :: 3. Copia os arquivos extras
           if exist launcher.vbs copy launcher.vbs Pacote_Final\
           if exist .env copy .env Pacote_Final\
           if exist notas.db copy notas.db Pacote_Final\
@@ -55,5 +55,5 @@ jobs:
       - name: 🚀 Upload do Sistema
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Estoque-v2-FINAL
+          name: Sistema-Estoque
           path: Pacote_Final/
